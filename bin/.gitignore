@@ -1,0 +1,6 @@
+# .gitignore in the "bin" directory
+
+# Ignore all files
+*
+# Exceptions
+!.gitignore

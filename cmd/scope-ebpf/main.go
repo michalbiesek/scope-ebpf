@@ -7,6 +7,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/criblio/scope-ebpf/internal/ebpf/oom"
 	"github.com/criblio/scope-ebpf/internal/ebpf/sigdel"
 )
 
@@ -26,6 +27,14 @@ func main() {
 		return
 	}
 	defer sd.Teardown()
+
+	// Setup OOM
+	oom, err := oom.Setup()
+	if err != nil {
+		fmt.Printf("oom.Setup failed %v", err)
+		return
+	}
+	defer oom.Teardown()
 
 	stopChan := make(chan os.Signal, 1)
 	signal.Notify(stopChan, os.Interrupt, syscall.SIGUSR1)

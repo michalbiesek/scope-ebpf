@@ -18,7 +18,8 @@ RUN apt-get update && \
 RUN add-apt-repository ppa:longsleep/golang-backports --yes && \
     apt-get update && \
     apt-get install -y \
-        golang
+        golang && \
+    rm -rf /var/lib/apt/lists/*
 
 # Install libbpf and bpftool
 ARG LIBBPF_VERSION=v1.2.0

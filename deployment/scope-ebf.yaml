@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: scope-ebpf-daemon
+spec:
+  selector:
+    matchLabels:
+      app: scope-ebpf
+  template:
+    metadata:
+      labels:
+        app: scope-ebpf
+    spec:
+      containers:
+        - name: scope-ebpf
+          image:  mbiesekcribl/scope-ebpf:0.0.1
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash"]
+          args:
+          - "-c"
+          - "scope-ebpf-dynamic --scopepromserver=scope-prom:9090"
+          securityContext:
+            privileged: true

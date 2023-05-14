@@ -46,7 +46,8 @@ WORKDIR /opt/scope-ebpf
 
 RUN make all
 
-# Copy scope-ebpf binary to be available in PATH
-RUN cp /opt/scope-ebpf/bin/scope-ebpf /bin/scope-ebpf
+# Copy scope-ebpf binaries to be available in PATH
+RUN cp /opt/scope-ebpf/bin/scope-ebpf-dynamic /bin/scope-ebpf-dynamic
+RUN cp /opt/scope-ebpf/bin/scope-ebpf-static /bin/scope-ebpf-static
 
-CMD ["bash"]
+CMD ["scope-ebpf-static"]

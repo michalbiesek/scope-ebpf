@@ -14,11 +14,9 @@
 char __license[] SEC("license") = "GPL";
 
 struct {
-	__uint(type, BPF_MAP_TYPE_PERF_EVENT_ARRAY);
-	__uint(key_size, sizeof(u32));
-	__uint(value_size, sizeof(u32));
+	__uint(type, BPF_MAP_TYPE_RINGBUF);
+	__uint(max_entries, 1 << 24);
 } oom_events SEC(".maps");
-
 
 struct oom_data_t {
     u64 cgroupMemoryMax;                    // Cgroup Maximum memory limit (value is presented in pages unit)
@@ -31,7 +29,7 @@ SEC("kprobe/oom_kill_process")
 int kprobe__oom_kill_process(struct pt_regs *ctx)
 {
     struct oom_control *oc = (struct oom_control*) PT_REGS_PARM1(ctx);
-    struct oom_data_t oom_data = {};
+    struct oom_data_t *oom_data = NULL;
     u64 max = 0;
 
     struct task_struct *chosen;
@@ -71,18 +69,20 @@ int kprobe__oom_kill_process(struct pt_regs *ctx)
         }
     }
 
-    oom_data.cgroupMemoryMax = max;
-    for (int i = 0; i < TASK_COMM_LEN; ++i ){
-        oom_data.comm[i] = chosencomm[i];
+    oom_data = bpf_ringbuf_reserve(&oom_events, sizeof(struct oom_data_t), 0);
+    if (!oom_data) {
+        bpf_printk("ERROR:oom_kill_process:reserve fails\n");
+        return 0;
     }
-    oom_data.pid = pid;
-    oom_data.oomType = memcg ? OOM_CGROUP : OOM_GLOBAL;
 
+    oom_data->cgroupMemoryMax = max;
+    for (int i = 0; i < TASK_COMM_LEN; ++i ){
+        oom_data->comm[i] = chosencomm[i];
+    }
+    oom_data->pid = pid;
+    oom_data->oomType = memcg ? OOM_CGROUP : OOM_GLOBAL;
 
-    if (bpf_perf_event_output(ctx, &oom_events, BPF_F_CURRENT_CPU,
-							  &oom_data, sizeof(oom_data)) != 0) {
-		bpf_printk("ERROR:oom:bpf_perf_event_output\n");
-	}
+    bpf_ringbuf_submit(oom_data, 0);
 
     return 0;
 }

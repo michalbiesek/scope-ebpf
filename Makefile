@@ -1,6 +1,7 @@
 DOCKER_IMAGE_NAME ?= criblio/scope-epbf
 DOCKER_IMAGE_TAG ?= latest
-EBPF_LOADER := scope-ebpf
+EBPF_LOADER_STATIC := scope-ebpf-static
+EBPF_LOADER_DYNAMIC := scope-ebpf-dynamic
 BPFTOOL ?= bpftool
 CLANG ?= clang
 CFLAGS := -O2 -g -Wall -Werror $(CFLAGS)
@@ -20,13 +21,14 @@ endif
 GO_FILES := $(shell find . -name "*.go" ! -name "*bpfel*.go" -type f)
 
 all: build
-build: scope-ebpf
+build: scope-ebpf-dynamic scope-ebpf-static
 
 build-container:
 	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) .
 
 clean:
-	$(RM) bin/${EBPF_LOADER}
+	$(RM) bin/${EBPF_LOADER_DYNAMIC}
+	$(RM) bin/${EBPF_LOADER_STATIC}
 	$(RM) internal/ebpf/vmlinux.h
 	@$(foreach entry,$(wildcard $(EBPF_DIR)/*), \
 		if [ -d "$(entry)" ]; then \
@@ -35,9 +37,13 @@ clean:
 		fi; \
 	)
 
-scope-ebpf: generate
-	$(GO) build -ldflags="-extldflags=-static" -o bin/${EBPF_LOADER} ./cmd/scope-ebpf
-	chmod +x bin/${EBPF_LOADER}
+scope-ebpf-dynamic: generate
+	$(GO) build -o bin/${EBPF_LOADER_DYNAMIC} ./cmd/scope-ebpf
+	chmod +x bin/${EBPF_LOADER_DYNAMIC}
+
+scope-ebpf-static: generate
+	$(GO) build -ldflags="-extldflags=-static" -o bin/${EBPF_LOADER_STATIC} ./cmd/scope-ebpf
+	chmod +x bin/${EBPF_LOADER_STATIC}
 
 fmt:
 	@for file in $(GO_FILES); do \
@@ -55,15 +61,16 @@ generate: vmlinux
 
 help:
 	@echo "Available targets:"
-	@echo "  all             - Default target, builds the scope-ebpf binary"
-	@echo "  build           - Builds the scope-ebpf binary"
-	@echo "  build-container - Builds the scope-ebpf docker image"
-	@echo "  clean           - Cleans up build artifacts"
-	@echo "  scope-ebpf      - Builds the scope-ebpf binary"
-	@echo "  fmt             - Formats Go source files"
-	@echo "  generate        - Generates Go code for ebpf programs"
-	@echo "  vet             - Runs Go vet on source files"
-	@echo "  vmlinux         - Generates vmlinux.h header file"
+	@echo "  all                 - Default target, builds the scope-ebpf binary"
+	@echo "  build               - Builds the scope-ebpf binary"
+	@echo "  build-container     - Builds the scope-ebpf docker image"
+	@echo "  clean               - Cleans up build artifacts"
+	@echo "  scope-ebpf-dynamic  - Builds the scope-ebpf dynamic binary"
+	@echo "  scope-ebpf-static   - Builds the scope-ebpf static binary"
+	@echo "  fmt                 - Formats Go source files"
+	@echo "  generate            - Generates Go code for ebpf programs"
+	@echo "  vet                 - Runs Go vet on source files"
+	@echo "  vmlinux             - Generates vmlinux.h header file"
 
 vet:
 	@for file in $(GO_FILES); do \

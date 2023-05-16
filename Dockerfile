@@ -21,7 +21,7 @@ RUN add-apt-repository ppa:longsleep/golang-backports --yes && \
         golang
 
 # Install libbpf and bpftool
-ARG LIBBPF_VERSION=v1.1.0
+ARG LIBBPF_VERSION=v1.2.0
 RUN cd /tmp && \
     mkdir /tmp/libbpf && \
     curl -Ls https://github.com/libbpf/libbpf/archive/refs/tags/${LIBBPF_VERSION}.tar.gz | tar zxvf - -C /tmp/libbpf --strip-components 1 && \
@@ -30,7 +30,7 @@ RUN cd /tmp && \
     make install && \
     rm -rf tmp/libbpf
 
-ARG BPFTOOL_VERSION=v7.1.0
+ARG BPFTOOL_VERSION=v7.2.0
 RUN cd /tmp && \
     mkdir /tmp/bpftool && \
     git clone https://github.com/libbpf/bpftool.git --branch ${BPFTOOL_VERSION} --recurse-submodules --single-branch /tmp/bpftool && \

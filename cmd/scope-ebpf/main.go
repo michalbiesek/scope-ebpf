@@ -1,48 +1,27 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"os/signal"
-	"syscall"
-	"time"
-
-	"github.com/criblio/scope-ebpf/internal/ebpf/sigdel"
 )
 
-const timeout = 60 * time.Second
-
 func main() {
+	var cfg serverCfg
+
 	if os.Geteuid() != 0 {
 		fmt.Println("This binary must be run with sudo for elevated privileges.")
 		return
 	}
-	fmt.Println(os.Args[0], "started, PID:", os.Getpid())
 
-	// Setup Sigdel
-	sd, err := sigdel.Setup()
-	if err != nil {
-		fmt.Printf("sigdel.Setup failed %v", err)
-		return
-	}
-	defer sd.Teardown()
+	// fmt.Println(os.Args[0], "started, PID:", os.Getpid())
+	flag.StringVar(&cfg.address, "scopepromserver", "", "Scope Prometheus server")
+	flag.BoolVar(&cfg.debug, "debug", false, "Enable debug message")
+	flag.Parse()
 
-	stopChan := make(chan os.Signal, 1)
-	signal.Notify(stopChan, os.Interrupt, syscall.SIGUSR1)
-
-	// Create a channel to implement the timeout
-	timeoutChan := time.After(timeout)
-
-	// Teardown procedure
-	for {
-		select {
-		case stopSig := <-stopChan:
-			fmt.Println("\nReceived signal:", stopSig.String())
-			fmt.Println("\nExiting")
-			os.Exit(0)
-		case <-timeoutChan:
-			fmt.Printf("\nTimeout %v reached. Exiting...", timeout)
-			os.Exit(1)
-		}
+	if cfg.address != "" {
+		server(cfg)
+	} else {
+		loader()
 	}
 }

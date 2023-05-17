@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: scope-ebpf-daemon
+spec:
+  selector:
+    matchLabels:
+      app: scope-ebpf
+  template:
+    metadata:
+      labels:
+        app: scope-ebpf
+      annotations:
+        appscope.dev/disable: "true"
+    spec:
+      containers:
+        - name: scope-ebpf
+          image: mbiesekcribl/scope-ebpf:0.0.1
+          imagePullPolicy: IfNotPresent
+          command: ["/bin/bash"]
+          args:
+            - "-c"
+            - "scope-ebpf --scopepromserver=scope-prom:9090 --debug"
+          securityContext:
+            capabilities:
+              add: ["SYS_ADMIN"]
+          volumeMounts:
+            - name: kernel-debug
+              mountPath: /sys/kernel/debug
+      volumes:
+        - name: kernel-debug
+          hostPath:
+            path: /sys/kernel/debug

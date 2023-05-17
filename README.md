@@ -12,6 +12,8 @@ scope-ebpf is an eBPF loader.
     * [Docker](#docker)
     * [Host](#host)
 3. [Run](#run)
+    * [Docker](#docker)
+    * [Host](#host)
 4. [AppScope integration](#appscope-integration)
 
 
@@ -37,15 +39,15 @@ git clone https://github.com/criblio/scope-ebpf.git
 cd scope-ebpf
 ```
 
-### Docker 
+### Docker
 
 To build the Docker image, run the following command:
 
 ```bash
-make build-container
+make image
 ```
 
-### Host 
+### Host
 
 To build scope-ebpf directly on the host machine, run the following command:
 
@@ -55,10 +57,18 @@ make all
 
 ## Run
 
-To run the scope-ebpf loader, run the following command:
+To run the scope-ebpf loader directly on the host machine, run the following command:
 
 ```bash
 sudo ./bin/scope-ebpf
+```
+
+### Docker
+
+To run the scope-ebpf loader from the Docker image, run the following command:
+
+```bash
+docker run --rm --cap-add SYS_ADMIN -v /sys/kernel/debug:/sys/kernel/debug:ro criblio/scope-epbf:latest scope-ebpf
 ```
 
 ## AppScope integration

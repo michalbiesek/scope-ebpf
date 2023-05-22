@@ -24,10 +24,10 @@ GO_FILES := $(shell find . -name "*.go" ! -name "*bpfel*.go" -type f)
 all: build
 build: scope-ebpf
 
-docker-builer:
+docker-builder:
 	docker build -t $(DOCKER_BUILDER_IMAGE_NAME):$(DOCKER_BUILDER_TAG) --file docker/builder/Dockerfile .
 
-image: docker-builer
+image: docker-builder
 	docker build -t $(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG) --file docker/base/Dockerfile .
 
 clean:
@@ -62,7 +62,7 @@ help:
 	@echo "Available targets:"
 	@echo "  all             - Default target, builds the scope-ebpf binary"
 	@echo "  build           - Builds the scope-ebpf binary"
-	@echo "  docker-builer   - Builds the scope-ebpf docker image builder"
+	@echo "  docker-builder  - Builds the scope-ebpf docker image builder"
 	@echo "  image           - Builds the scope-ebpf docker image"
 	@echo "  clean           - Cleans up build artifacts"
 	@echo "  scope-ebpf      - Builds the scope-ebpf binary"
@@ -79,4 +79,4 @@ vet:
 vmlinux:
 	$(BPFTOOL) btf dump file $(BTF_VMLINUX) format c > internal/ebpf/vmlinux.h
 
-.PHONY: all build clean docker-builer fmt generate help image scope-ebpf vet vmlinux
+.PHONY: all build clean docker-builder fmt generate help image scope-ebpf vet vmlinux

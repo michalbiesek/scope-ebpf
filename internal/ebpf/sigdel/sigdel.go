@@ -9,24 +9,6 @@ import (
 	"github.com/cilium/ebpf/rlimit"
 )
 
-type sigdel_data_t struct {
-	Pid     uint32
-	NsPid   uint32
-	Sig     uint32
-	Errno   uint32
-	Code    uint32
-	Uid     uint32
-	Gid     uint32
-	Handler uint64
-	Flags   uint64
-	Comm    [32]byte
-}
-
-type SigEvent struct {
-	sigdel_data_t
-	CPU int
-}
-
 type SigDelStruct struct {
 	objs bpfObjects
 	link link.Link
